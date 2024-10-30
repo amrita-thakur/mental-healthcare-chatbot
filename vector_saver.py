@@ -1,0 +1,64 @@
+import os
+import shutil
+import pickle
+from dotenv import load_dotenv
+
+from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"]="Mental HealthCare Chatbot"
+
+# Load environment variables
+load_dotenv(override=True)
+
+
+def load_and_split_documents(directory_path: str = "data", chunk_size: int = 500, chunk_overlap: int = 0):
+    """
+    Load PDF documents from a directory and split them into chunks.
+
+    Args:
+        chunk_size (int): Size of each chunk.
+        chunk_overlap (int): Overlap between chunks.
+
+    Returns:
+        list: List of document chunks.
+    """
+
+    if not os.path.isdir(directory_path):
+        raise ValueError(f"Directory path not found: {directory_path}")
+    
+    pdf_loader = DirectoryLoader(directory_path, glob="**/*.pdf", loader_cls=PyPDFLoader)
+    pdf_documents = pdf_loader.load()
+
+    chunk_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, 
+                                                    chunk_overlap=chunk_overlap,
+                                                    add_start_index=True,)
+    document_chunks = chunk_splitter.split_documents(pdf_documents)
+
+    return document_chunks
+
+def save_to_faiss(document_chunks: list, vectorstore_filename: str = "faiss_vectorstore.pkl"):
+    """
+    Initialize the language model and vector store.
+
+    Args:
+        document_chunks (list): List of document chunks.
+        vectorstore_filename (str): filename to store FAISS vector store as pickle file.
+    """
+
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': "cpu"})
+    vectorstore_contents = FAISS.from_documents(document_chunks, embeddings)
+
+    with open(vectorstore_filename, "wb") as f:
+        pickle.dump(vectorstore_contents, f)
+
+
+
+if __name__ == "__main__":
+
+    chunks = load_and_split_documents()
+    save_to_faiss(chunks)

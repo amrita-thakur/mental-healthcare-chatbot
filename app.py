@@ -1,97 +1,47 @@
 import os
+import pickle
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"]="Mental HealthCare Chatbot v0.1.0"
+os.environ["LANGCHAIN_PROJECT"]="Mental HealthCare Chatbot"
 
 # Load environment variables
 load_dotenv(override=True)
 
-
-def load_and_split_documents(chunk_size: int = 500, chunk_overlap: int = 50):
+def load_faiss_vector_store(vectorstore_filename: str = "faiss_vectorstore.pkl"):
     """
-    Load PDF documents from a directory and split them into chunks.
+    Load FAISS vector store.
 
     Args:
-        chunk_size (int): Size of each chunk.
-        chunk_overlap (int): Overlap between chunks.
-
+        db_directory_path (str): path to FAISS database.
     Returns:
-        list: List of document chunks.
+        FAISS vector store
     """
-    directory_path = "data"
+    try:
+
+        with open(vectorstore_filename, "rb") as f:
+            vector_store = pickle.load(f)
+
+        retriever=vector_store.as_retriever()
+
+        return retriever
     
-    pdf_loader = DirectoryLoader(directory_path, glob="*.pdf", loader_cls=PyPDFLoader)
-    pdf_documents = pdf_loader.load()
+    except Exception as e:
+        raise e
 
-    chunk_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    document_chunks = chunk_splitter.split_documents(pdf_documents)
-
-    return document_chunks
-
-def initialize_models_and_store(document_chunks: list):
-    """
-    Initialize the language model and vector store.
-
-    Args:
-        document_chunks (list): List of document chunks.
-
-    Returns:
-        tuple: Language model and vector retriever.
-    """
-    groq_api_key = st.secrets['GROQ_API_KEY']
-    if not groq_api_key:
-        raise ValueError("GROQ API key not found.")
-    
-    groq_model_name = "Llama3-8b-8192"
-    language_model = ChatGroq(groq_api_key=groq_api_key, model_name=groq_model_name)
-
-    embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
-    embeddings_model = HuggingFaceEmbeddings(model_name=embedding_model_name, model_kwargs={'device': "cpu"})
-    vector_database = FAISS.from_documents(document_chunks, embeddings_model)
-    retriever=vector_database.as_retriever()
-
-    return language_model, retriever
-
-def initialize_models_and_store2(vector_index_path: str):
-    """
-    Initialize the language model and vector store.
-
-    Args:
-        document_chunks (list): List of document chunks.
-
-    Returns:
-        tuple: Language model and vector retriever.
-    """
-    groq_api_key = os.getenv('GROQ_API_KEY')
-    if not groq_api_key:
-        raise ValueError("GROQ API key not found.")
-    
-    groq_model_name = os.getenv('GROQ_MODEL_NAME')
-    language_model = ChatGroq(groq_api_key=groq_api_key, model_name=groq_model_name)
-
-    embedding_model_name = os.getenv("EMBEDDING_MODEL_NAME")
-    embeddings_model = HuggingFaceEmbeddings(model_name=embedding_model_name, model_kwargs={'device': "cpu"})
-    vector_database = FAISS.load_local(document_chunks, embeddings_model)
-    retriever=vector_database.as_retriever()
-
-    return language_model, retriever
-
-def create_conversational_chain(language_model: ChatGroq, retriever: FAISS):
+def create_conversational_chain(retriever: FAISS):
     """
     Create the conversational retrieval chain.
 
@@ -102,6 +52,13 @@ def create_conversational_chain(language_model: ChatGroq, retriever: FAISS):
     Returns:
         create_retrieval_chain: The conversational retrieval chain.
     """
+
+    groq_api_key = os.getenv('GROQ_API_KEY')
+    if not groq_api_key:
+        raise ValueError("GROQ API key not found.")
+    
+    groq_model_name = "Llama3-8b-8192"
+    language_model = ChatGroq(groq_api_key=groq_api_key, model_name=groq_model_name)
 
     contextualize_q_system_prompt = "Given a chat history and the latest user question \
     which might reference context in the chat history, formulate a standalone question \
@@ -204,9 +161,8 @@ def main():
     """
     Main function to run the Streamlit application.
     """
-    document_chunks = load_and_split_documents()
-    language_model, vector_database = initialize_models_and_store(document_chunks)
-    conversation_chain = create_conversational_chain(language_model, vector_database)
+    retriever = load_faiss_vector_store()
+    conversation_chain = create_conversational_chain(retriever)
 
     initialize_session_state()
     display_chat_interface(conversation_chain)

@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
-from langchain_chroma import Chroma
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
@@ -43,26 +42,6 @@ def load_faiss_vector_store(db_directory_path: str = "faiss_db"):
     except Exception as e:
         raise e
 
-def load_chroma_vector_store(db_directory_path: str = "chroma_db"):
-    """
-    Load Chroma vector store.
-
-    Args:
-        db_directory_path (str): path to FAISS database
-    Returns:
-        FAISS vector store
-    """
-    try:
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': "cpu"})
-        vector_store = Chroma(persist_directory=db_directory_path, embedding_function=embeddings) 
-
-        retriever=vector_store.as_retriever()
-
-        return retriever
-    
-    except Exception as e:
-        raise e
-    
 def create_conversational_chain(retriever: FAISS):
     """
     Create the conversational retrieval chain.
@@ -183,7 +162,7 @@ def main():
     """
     Main function to run the Streamlit application.
     """
-    retriever = load_chroma_vector_store()
+    retriever = load_faiss_vector_store()
     conversation_chain = create_conversational_chain(retriever)
 
     initialize_session_state()

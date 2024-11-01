@@ -3,27 +3,26 @@ import pickle
 import streamlit as st
 from dotenv import load_dotenv
 
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"]="Mental HealthCare Chatbot v0.1.0"
+os.environ["LANGCHAIN_PROJECT"]="Mental HealthCare Chatbot"
 
 # Load environment variables
 load_dotenv(override=True)
 
-def load_faiss_vector_store(vectorstore_filename: str = "faiss_vectorstore.pkl"):
+
+def load_faiss_vector_store(db_directory_path: str = "faiss_db"):
     """
     Load FAISS vector store.
 
@@ -33,9 +32,8 @@ def load_faiss_vector_store(vectorstore_filename: str = "faiss_vectorstore.pkl")
         FAISS vector store
     """
     try:
-
-        with open(vectorstore_filename, "rb") as f:
-            vector_store = pickle.load(f)
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': "cpu"})
+        vector_store = FAISS.load_local(db_directory_path, embeddings, allow_dangerous_deserialization=True)
 
         retriever=vector_store.as_retriever()
 
@@ -56,7 +54,7 @@ def create_conversational_chain(retriever: FAISS):
         create_retrieval_chain: The conversational retrieval chain.
     """
 
-    groq_api_key = os.getenv('GROQ_API_KEY')
+    groq_api_key = st.secrets['GROQ_API_KEY']
     if not groq_api_key:
         raise ValueError("GROQ API key not found.")
     

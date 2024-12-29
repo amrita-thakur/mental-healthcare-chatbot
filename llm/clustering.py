@@ -216,7 +216,7 @@ def embed_cluster_texts(texts):
     df["text"] = texts  # Store original texts
     df["embd"] = list(text_embeddings_np)  # Store embeddings as a list in the DataFrame
     df["cluster"] = cluster_labels  # Store cluster labels
-    df.to_csv("cluster_data/embed_cluster_texts.csv")
+    # df.to_csv("cluster_data/embed_cluster_texts.csv")
     return df
 
 

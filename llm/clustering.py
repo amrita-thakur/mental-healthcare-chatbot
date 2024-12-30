@@ -322,7 +322,7 @@ def recursive_embed_cluster_summarize(
     """
     results = {}  # Dictionary to store results at each level
 
-    model = get_llm()
+    model = get_llm(provider = "groq")
     # Perform embedding, clustering, and summarization for the current level
     df_clusters, df_summary = embed_cluster_summarize_texts(texts, level, model)
 

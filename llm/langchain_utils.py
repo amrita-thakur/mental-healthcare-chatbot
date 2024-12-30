@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 
 from langchain_openai import AzureChatOpenAI
 from langchain_groq import ChatGroq
@@ -23,7 +24,7 @@ def get_embeddings(provider: str = "huggingface"):
     """
     if provider.lower() == "huggingface":
         try:
-            model_name = os.getenv("EMBEDDING_MODEL_NAME")
+            model_name = st.secrets("EMBEDDING_MODEL_NAME")
             embeddings = HuggingFaceEmbeddings(
                 model_name=model_name, model_kwargs={"device": "cpu"}
             )
@@ -48,10 +49,10 @@ def get_llm(provider: str = "azure"):
     if provider.lower() == "azure":
         try:
             model = AzureChatOpenAI(
-                openai_api_key=os.getenv("AZURE_OAI_KEY"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-                azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
-                openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+                openai_api_key=st.secrets("AZURE_OAI_KEY"),
+                azure_endpoint=st.secrets("AZURE_OPENAI_ENDPOINT"),
+                azure_deployment=st.secrets("AZURE_OPENAI_DEPLOYMENT"),
+                openai_api_version=st.secrets("AZURE_OPENAI_API_VERSION"),
                 openai_api_type="openai",
             )
         except Exception as e:
@@ -60,8 +61,8 @@ def get_llm(provider: str = "azure"):
     elif provider.lower() == "groq":
         try:
             model = ChatGroq(
-                groq_api_key=os.getenv("GROQ_API_KEY"),
-                model_name=os.getenv("GROQ_MODEL_NAME", "default-groq-model"),
+                groq_api_key=st.secrets("GROQ_API_KEY"),
+                model_name=st.secrets("GROQ_MODEL_NAME", "default-groq-model"),
             )
         except Exception as e:
             raise ValueError(f"Failed to initialize Groq model: {e}")
@@ -81,7 +82,7 @@ def create_conversational_chain(retriever: FAISS):
     Returns:
         create_retrieval_chain: The conversational retrieval chain.
     """
-    language_model = get_llm()
+    language_model = get_llm(provider="groq")
 
     contextualize_q_system_prompt = "Given a chat history and the latest user question \
     which might reference context in the chat history, formulate a standalone question \

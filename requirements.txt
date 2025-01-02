@@ -1,11 +1,13 @@
-langchain==0.2.5
-langchain_community==0.2.5
-langchain_groq==0.1.5
-faiss-cpu==1.8.0 
-langchain_huggingface==0.0.3
-python-dotenv==1.0.1
-streamlit==1.35.0
-pypdf==4.2.0
-pydantic==2.9.2
-pydantic-settings==2.6.0
-pydantic_core==2.23.4
+langchain == 0.3.12
+langchain-community == 0.3.12
+langchain-groq == 0.2.1
+faiss-cpu == 1.9.0.post1
+langchain-huggingface == 0.1.2
+python-dotenv == 1.0.1
+streamlit == 1.41.1
+pypdf == 5.1.0
+umap-learn == 0.5.7
+langchain-openai == 0.2.12
+flake8 == 7.1.1
+pre-commit == 4.0.1
+pytest == 8.3.4

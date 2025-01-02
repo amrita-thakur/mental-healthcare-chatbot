@@ -24,7 +24,7 @@ def get_embeddings(provider: str = "huggingface"):
     """
     if provider.lower() == "huggingface":
         try:
-            model_name = st.secrets("EMBEDDING_MODEL_NAME")
+            model_name = st.secrets["EMBEDDING_MODEL_NAME"]
             embeddings = HuggingFaceEmbeddings(
                 model_name=model_name, model_kwargs={"device": "cpu"}
             )
@@ -49,10 +49,10 @@ def get_llm(provider: str = "azure"):
     if provider.lower() == "azure":
         try:
             model = AzureChatOpenAI(
-                openai_api_key=st.secrets("AZURE_OAI_KEY"),
-                azure_endpoint=st.secrets("AZURE_OPENAI_ENDPOINT"),
-                azure_deployment=st.secrets("AZURE_OPENAI_DEPLOYMENT"),
-                openai_api_version=st.secrets("AZURE_OPENAI_API_VERSION"),
+                openai_api_key=st.secrets["AZURE_OAI_KEY"],
+                azure_endpoint=st.secrets["AZURE_OPENAI_ENDPOINT"],
+                azure_deployment=st.secrets["AZURE_OPENAI_DEPLOYMENT"],
+                openai_api_version=st.secrets["AZURE_OPENAI_API_VERSION"],
                 openai_api_type="openai",
             )
         except Exception as e:
@@ -61,8 +61,8 @@ def get_llm(provider: str = "azure"):
     elif provider.lower() == "groq":
         try:
             model = ChatGroq(
-                groq_api_key=st.secrets("GROQ_API_KEY"),
-                model_name=st.secrets("GROQ_MODEL_NAME", "default-groq-model"),
+                groq_api_key=st.secrets["GROQ_API_KEY"],
+                model_name=st.secrets["GROQ_MODEL_NAME", "default-groq-model"],
             )
         except Exception as e:
             raise ValueError(f"Failed to initialize Groq model: {e}")

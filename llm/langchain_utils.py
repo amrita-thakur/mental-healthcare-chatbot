@@ -62,7 +62,7 @@ def get_llm(provider: str = "azure"):
         try:
             model = ChatGroq(
                 groq_api_key=st.secrets["GROQ_API_KEY"],
-                model_name=st.secrets["GROQ_MODEL_NAME", "default-groq-model"],
+                model_name=st.secrets["GROQ_MODEL_NAME"],
             )
         except Exception as e:
             raise ValueError(f"Failed to initialize Groq model: {e}")

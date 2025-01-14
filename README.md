@@ -8,14 +8,9 @@ The healthcare chatbot leverages LangChain, a framework for integrating retrieva
 
 ## Features
 
-- **PDF Query Search**: Utilizes FAISS for efficient querying of information within PDF documents.
+- **PDF Query Search**: Utilizes FAISS and RAPTOR for efficient querying of information within PDF documents.
 - **Mental Health Support**: Provides conversational AI capabilities tailored to mental health queries and support.
 - **Streamlit Integration**: User-friendly interface powered by Streamlit for seamless interaction.
-
-## Structure
-
-- **faiss_vectorstore.pkl**: FAISS vector store contents pickle file
-- **app.py**: main script to build and run chatbot
 
 ## Getting Started
 
@@ -27,7 +22,7 @@ The healthcare chatbot leverages LangChain, a framework for integrating retrieva
    pip install -r requirements.txt
    ```
 
-2. **Run the Chatbot**: Navigate to the `/src` directory and execute the Streamlit application.
+2. **Run the Chatbot**: Execute the Streamlit application.
 
    ```bash
    streamlit run app.py

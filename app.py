@@ -6,6 +6,8 @@ from app_utils.streamlit_utils import initialize_session_state, display_chat_int
 
 load_dotenv(override=True)
 
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"]=" Mental HealthCare Chatbot"
 
 def main():
     """

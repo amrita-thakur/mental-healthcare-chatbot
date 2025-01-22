@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 
 from db.db_helper import load_faiss_vector_store
